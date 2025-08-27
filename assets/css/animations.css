@@ -1,80 +1,92 @@
+/* Animations!! */ 
+
+/* Fade in with upward motion */
 @keyframes fadeInUp {
     from {
-        opacity: 0;
-        transform: translateY(30px);
+        opacity: 0; /* Starts off invisible */
+        transform: translateY(30px); /* Slightly Moves Down */
     }
     to {
-        opacity: 1;
-        transform: translateY(0);
+        opacity: 1; /* Becomes Fully Visible */
+        transform: translateY(0); /* Back to original position */
     }
 }
 
+/* Stronger slide-up fade-in - Consists of a larger movement that the first one*/
 @keyframes slideInUp {
     from {
-        opacity: 0;
-        transform: translateY(60px);
+        opacity: 0; /* Starts invisible */
+        transform: translateY(60px); /* Moves Further Down */
     }
     to {
-        opacity: 1;
-        transform: translateY(0);
+        opacity: 1; /* Becomes fully visible */
+        transform: translateY(0); /* Moves back to its original position */
     }
 }
 
+/* Creates a pulse effect - the element scales slightly up and down */
 @keyframes pulse {
     0%, 100% {
-        transform: scale(1);
+        transform: scale(1); /* The Normal Size  */
     }
     50% {
-        transform: scale(1.05);
+        transform: scale(1.05); /* Slightly Larger */
     }
 }
 
+/* Shimmer Effect - the gradient in the background moves*/
 @keyframes shimmer {
     0% {
-        background-position: -200% 0;
+        background-position: -200% 0; /* Gradient starts off left */
     }
     100% {
-        background-position: 200% 0;
+        background-position: 200% 0; /* Then the gradient moves across to the right */
     }
 }
 
+/* Spinning Effect - For Loading Icons */
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% { transform: rotate(0deg); } /* Starts at 0 degrees */
+    100% { transform: rotate(360deg); } /* Full rotation */
 }
 
+/* Slide in from the right while fading in */
 @keyframes slideInRight {
     from {
-        opacity: 0;
-        transform: translateX(100%);
+        opacity: 0; /* Invisible */
+        transform: translateX(100%); /* Offscreen on the right */
     }
     to {
-        opacity: 1;
-        transform: translateX(0);
+        opacity: 1; /* Fully visible */
+        transform: translateX(0); /* Back to original position */
     }
 }
 
+/* Slide out to the right while fading out */
 @keyframes slideOutRight {
     from {
-        opacity: 1;
-        transform: translateX(0);
+        opacity: 1; /* Fully visible */
+        transform: translateX(0); /* In the normal position */
     }
     to {
-        opacity: 0;
-        transform: translateX(100%);
+        opacity: 0; /* Invisible */
+        transform: translateX(100%); /* Moves offscreen to the right */
     }
 }
 
+/* Applies a looping pulse effect for loading icons */
 .loading {
     animation: pulse 1.5s ease-in-out infinite;
 }
 
+/* Applies the shimmer effect for skeleton loading */
 .shimmer-effect {
     background: linear-gradient(90deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 100%);
     background-size: 200% 100%;
     animation: shimmer 2s infinite;
 }
 
+/* Applies the face in up effect to elements when done */
 .fadeInUp {
     animation: fadeInUp 0.5s ease-out both;
 }

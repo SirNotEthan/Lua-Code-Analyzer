@@ -1,45 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Standard HTML MetaData -->
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roblox Script Checker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Allows Mobile Responsiveness -->
+    
+    <!-- THis is the Title Shown on the Tab-->
+    <title>Lua Code Analyzer</title>
+    
+    <!-- External Styles for the Code Editor -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/monokai.min.css">
-    <link rel="stylesheet" href="assets/css/base.css">
-    <link rel="stylesheet" href="assets/css/header.css">
-    <link rel="stylesheet" href="assets/css/input-section.css">
-    <link rel="stylesheet" href="assets/css/editor.css">
-    <link rel="stylesheet" href="assets/css/buttons.css">
-    <link rel="stylesheet" href="assets/css/results.css">
-    <link rel="stylesheet" href="assets/css/metrics.css">
-    <link rel="stylesheet" href="assets/css/issues.css">
-    <link rel="stylesheet" href="assets/css/animations.css">
-    <link rel="stylesheet" href="assets/css/utilities.css">
-    <link rel="stylesheet" href="assets/css/responsive.css">
+    
+    <!-- CSS Files which give the project its amazing design-->
+    <link rel="stylesheet" href="assets/css/base.css"> <!-- General Colours and Designs -->
+    <link rel="stylesheet" href="assets/css/utilities.css"> <!-- Utility -->
+    <link rel="stylesheet" href="assets/css/animations.css"> <!-- Effects and transitions-->
+    <link rel="stylesheet" href="assets/css/header.css"> <!-- Page Header Design -->
+    <link rel="stylesheet" href="assets/css/input-section.css"> <!-- Input Area Design -->
+    <link rel="stylesheet" href="assets/css/editor.css"> <!-- Code Editor Design-->
+    <link rel="stylesheet" href="assets/css/buttons.css"> <!-- Button Designs -->
+    <link rel="stylesheet" href="assets/css/results.css"> <!-- Results Section Design -->
+    <link rel="stylesheet" href="assets/css/metrics.css"> <!-- All Metrics and Scorecards -->
+    <link rel="stylesheet" href="assets/css/issues.css"> <!-- Issues List Design -->
+    <link rel="stylesheet" href="assets/css/responsive.css"> <!-- Mobile Layout-->
 </head>
 <body>
     <div class="container">
+        <!-- Page Header -->
         <header>
-            <h1>Roblox Script Checker</h1>
-            <p>Analyze your Roblox scripts for deprecations, API issues, inefficiencies, and more</p>
+            <h1>Lua Code Analyzer</h1> <!-- Title at the top -->
+            <p>Analyze your Roblox Lua Scripts for Deprecations, API issues, Inefficiencies, and more</p> <!-- Description below Title -->
         </header>
         
         <main>
             <div class="input-section">
                 <div class="section-header">
                     <h2>📝 Script Input</h2>
-                    <p>Paste your Roblox Lua script below for comprehensive analysis</p>
+                    <p>Paste your Roblox Lua script below for comprehensive analysis</p> <!-- Description for the Section -->
                 </div>
+                <!-- Code Editor Container -->
                 <div class="editor-container">
                     <div id="codeEditor"></div>
                 </div>
+
+                <!-- Action Buttons for managing the input -->
                 <div class="action-section">
                     <button id="analyzeBtn" class="primary-btn">
+                        <!-- Button, Icon, Label and Loading Spinner -->
                         <span class="btn-icon">🔍</span>
                         <span class="btn-text">Analyze Script</span>
                         <span class="btn-loading" style="display: none;">⏳</span>
                     </button>
+
+                    <!-- Other Action Buttons -->
                     <div class="file-actions">
                         <button id="clearBtn" class="secondary-btn">Clear</button>
                         <button id="exampleBtn" class="secondary-btn">Load Example</button>
@@ -51,110 +65,113 @@
                 <div class="results-header">
                     <h2>📊 Analysis Results</h2>
                     <div class="results-actions">
-                        <button id="exportBtn" class="export-btn">📄 Export Report</button>
-                        <button id="shareBtn" class="share-btn">🔗 Share Results</button>
+                        <button id="exportBtn" class="export-btn">📄 Export Report</button> <!-- Export Button with gathers info and saves to local device-->
+                        <button id="shareBtn" class="share-btn">🔗 Share Results</button> <!-- Creates a file to be shared to another person -->
                     </div>
                 </div>
                 
                 <div class="summary-section">
                     <div class="overall-score">
-                        <div class="score-circle" id="scoreCircle">
-                            <span class="score-value" id="overallScore">85</span>
-                            <span class="score-label">Score</span>
+                        <div class="score-circle" id="scoreCircle"> <!-- The Score Circle (Formed by the CSS)-->
+                            <span class="score-value" id="overallScore">85</span> <!-- The Value in the Centre of the Circle -->
+                            <span class="score-label">Score</span> <!-- The Small "Score" text beneath the number -->
                         </div>
                         <div class="score-details">
-                            <h3>Code Health</h3>
-                            <p id="scoreDescription">Your code is in good shape with minor improvements needed</p>
+                            <h3>Code Health</h3> <!-- Card Title -->
+                            <p id="scoreDescription">Your code is in good shape with minor improvements needed</p> <!-- Card Description -->
                         </div>
                     </div>
                     
-                    <div class="metrics-grid">
-                        <div class="metric-card">
-                            <div class="metric-icon">📏</div>
-                            <h3>Lines of Code</h3>
-                            <p class="metric-value" id="lineCount">0</p>
-                            <small>Excluding comments</small>
+                    <div class="metrics-grid"> <!-- Keeps all the cards within together in a grid -->
+                        <!-- Lines of Code Card -->
+                        <div class="metric-card"> <!-- The Card Background itself -->
+                            <div class="metric-icon">📏</div>  <!-- Icon -->
+                            <h3>Lines of Code</h3> <!-- Card Title -->
+                            <p class="metric-value" id="lineCount">0</p> <!-- Card Value which is editable by Javascript Logic-->
+                            <small>Excluding comments</small> <!-- Card SmallPrint -->
                         </div>
                         
-                        <div class="metric-card">
-                            <div class="metric-icon">💬</div>
-                            <h3>Comments</h3>
-                            <p class="metric-value" id="commentCount">0</p>
-                            <small>Documentation lines</small>
+                        <!-- Total Comments Card -->
+                        <div class="metric-card">  <!-- The Card Background itself -->
+                            <div class="metric-icon">💬</div>  <!-- Icon -->
+                            <h3>Comments</h3> <!-- Card Title -->
+                            <p class="metric-value" id="commentCount">0</p> <!-- Card Value which is editable by Javascript Logic-->
+                            <small>Documentation lines</small> <!-- Card SmallPrint -->
                         </div>
                         
-                        <div class="metric-card">
-                            <div class="metric-icon">🏗️</div>
-                            <h3>Max Nesting</h3>
-                            <p class="metric-value" id="nestingLevel">0</p>
-                            <small>Complexity depth</small>
+                        <!-- Nesting Card -->
+                        <div class="metric-card"> <!-- The Card Background itself -->
+                            <div class="metric-icon">🏗️</div> <!-- Icon -->
+                            <h3>Max Nesting</h3> <!-- Card Title -->
+                            <p class="metric-value" id="nestingLevel">0</p> <!-- Card Value which is editable by Javascript Logic-->
+                            <small>Complexity depth</small> <!-- Card SmallPrint -->
                         </div>
                         
-                        <div class="metric-card">
-                            <div class="metric-icon">⚠️</div>
-                            <h3>Total Issues</h3>
-                            <p class="metric-value" id="totalIssues">0</p>
-                            <small>All categories</small>
+                        <!-- Total Issues Card -->
+                        <div class="metric-card"> <!-- The Card Background itself -->
+                            <div class="metric-icon">⚠️</div> <!-- Icon -->
+                            <h3>Total Issues</h3> <!-- Card Title -->
+                            <p class="metric-value" id="totalIssues">0</p> <!-- Card Value which is editable by Javascript Logic-->
+                            <small>All categories</small> <!-- Card SmallPrint -->
                         </div>
                     </div>
                 </div>
                 
                 <div class="issues-section">
+                    <!-- Each of the categories are collapsible lists that are populated by the Javascript Logic. -->
+                    <!-- Security Issues-->
                     <div class="issue-category security" data-category="security">
                         <div class="category-header">
-                            <h3>🔒 Security Issues <span class="count" id="securityCount">0</span></h3>
-                            <button class="collapse-btn" data-target="securityList">−</button>
+                            <h3>🔒 Security Issues <span class="count" id="securityCount">0</span></h3> <!-- Small TItle containing an editable count -->
+                            <button class="collapse-btn" data-target="securityList">−</button> <!-- Section Collapsing Button (Hides anything within the section) -->
                         </div>
                         <ul id="securityList" class="issue-list"></ul>
                     </div>
                     
+                    <!-- Deprecation Category-->
                     <div class="issue-category deprecation" data-category="deprecation">
                         <div class="category-header">
-                            <h3>⚠️ Deprecations <span class="count" id="deprecationCount">0</span></h3>
-                            <button class="collapse-btn" data-target="deprecationsList">−</button>
+                            <h3>⚠️ Deprecations <span class="count" id="deprecationCount">0</span></h3> <!-- Small TItle containing an editable count -->
+                            <button class="collapse-btn" data-target="deprecationsList">−</button> <!-- Section Collapsing Button (Hides anything within the section) -->
                         </div>
                         <ul id="deprecationsList" class="issue-list"></ul>
                     </div>
                     
+                    <!-- API Usage Issues Category-->
                     <div class="issue-category api" data-category="api">
                         <div class="category-header">
-                            <h3>🔧 API Issues <span class="count" id="apiCount">0</span></h3>
-                            <button class="collapse-btn" data-target="apiIssuesList">−</button>
+                            <h3>🔧 API Issues <span class="count" id="apiCount">0</span></h3><!-- Small TItle containing an editable count -->
+                            <button class="collapse-btn" data-target="apiIssuesList">−</button> <!-- Section Collapsing Button (Hides anything within the section) -->
                         </div>
                         <ul id="apiIssuesList" class="issue-list"></ul>
                     </div>
                     
+                    <!-- Performance Inefficiencies Category -->
                     <div class="issue-category performance" data-category="performance">
                         <div class="category-header">
-                            <h3>⚡ Performance <span class="count" id="inefficiencyCount">0</span></h3>
-                            <button class="collapse-btn" data-target="inefficienciesList">−</button>
+                            <h3>⚡ Performance <span class="count" id="inefficiencyCount">0</span></h3> <!-- Small TItle containing an editable count -->
+                            <button class="collapse-btn" data-target="inefficienciesList">−</button> <!-- Section Collapsing Button (Hides anything within the section) -->
                         </div>
                         <ul id="inefficienciesList" class="issue-list"></ul>
                     </div>
                     
+                    <!-- The Lint / Code Quality Category -->
                     <div class="issue-category quality" data-category="quality">
                         <div class="category-header">
-                            <h3>✨ Code Quality <span class="count" id="lintCount">0</span></h3>
-                            <button class="collapse-btn" data-target="lintIssuesList">−</button>
+                            <h3>✨ Code Quality <span class="count" id="lintCount">0</span></h3> <!-- Small Title containing an editable count -->
+                            <button class="collapse-btn" data-target="lintIssuesList">−</button> <!-- Section Collapsing Button (Hides anything within the section) -->
                         </div>
-                        <ul id="lintIssuesList" class="issue-list"></ul>
+                        <ul id="lintIssuesList" class="issue-list"></ul> <!-- How any of the lint error items can be placed -->
                     </div>
                 </div>
             </div>
         </main>
     </div>
-    
+
+    <!-- The Javascript Files and Libraries making this work -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/lua/lua.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/luaparse@0.3.1/luaparse.js"></script>
-    <script src="assets/js/modules/RobloxScriptChecker.js"></script>
-    <script src="assets/js/modules/AnalysisMethods.js"></script>
-    <script src="assets/js/modules/HelperMethods.js"></script>
-    <script src="assets/js/modules/LintChecks.js"></script>
-    <script src="assets/js/modules/SecurityChecks.js"></script>
-    <script src="assets/js/modules/BestPractices.js"></script>
-    <script src="assets/js/modules/APIVerification.js"></script>
-    <script src="assets/js/modules/FallbackAnalysis.js"></script>
-    <script src="assets/js/main.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
