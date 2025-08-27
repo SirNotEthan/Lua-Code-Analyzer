@@ -130,7 +130,7 @@ class RobloxScriptChecker {
 
             return {
                 lineCount: this.getLineCount(script),
-                commentCount: this.getCommentCount(ast),
+                commentCount: this.getCommentCount(ast, script),
                 nestingLevel: this.getMaxNestingLevel(ast),
                 deprecations: this.findDeprecations(ast),
                 apiIssues: this.findAPIIssues(ast),
@@ -157,8 +157,31 @@ class RobloxScriptChecker {
         return count;
     }
 
-    getCommentCount(ast) {
-        return ast.comments ? ast.comments.length : 0;
+    getCommentCount(ast, script) {
+        let astComments = ast.comments ? ast.comments.length : 0;
+        
+        const lines = script.split('\n');
+        let inlineComments = 0;
+        
+        for (let line of lines) {
+            const commentMatch = line.match(/^[^-]*--/);
+            if (commentMatch && !line.trim().startsWith('--')) {
+                inlineComments++;
+            }
+        }
+        
+        return Math.max(astComments, inlineComments + this.getStandaloneCommentCount(lines));
+    }
+
+    getStandaloneCommentCount(lines) {
+        let count = 0;
+        for (let line of lines) {
+            const trimmed = line.trim();
+            if (trimmed.startsWith('--')) {
+                count++;
+            }
+        }
+        return count;
     }
 
     getMaxNestingLevel(ast) {
@@ -200,19 +223,15 @@ class RobloxScriptChecker {
             if (node.type === 'CallExpression') {
                 const funcName = this.getFunctionName(node);
                 
-                // Fix: Only flag 'wait' when it's NOT 'task.wait'
                 if (funcName === 'wait') {
-                    // Check if this is actually task.wait() by looking at the base node
                     let isTaskWait = false;
                     if (node.base && node.base.type === 'MemberExpression') {
-                        // This is a method call like something.wait()
                         const baseExpr = this.getMemberExpressionString(node.base);
                         if (baseExpr === 'task.wait') {
                             isTaskWait = true;
                         }
                     }
                     
-                    // Only flag as deprecated if it's NOT task.wait()
                     if (!isTaskWait) {
                         issues.push({
                             line: node.loc ? node.loc.start.line : 'unknown',
@@ -562,8 +581,20 @@ class RobloxScriptChecker {
         let count = 0;
         for (let line of lines) {
             const trimmed = line.trim();
+            // Count standalone comments
             if (trimmed.startsWith('--')) {
                 count++;
+            }
+            // Count inline comments (code followed by --)
+            else if (line.includes('--') && !trimmed.startsWith('--')) {
+                // Make sure it's not within a string literal
+                const beforeComment = line.substring(0, line.indexOf('--'));
+                // Simple check: if we have an even number of quotes before the comment, it's likely not in a string
+                const singleQuotes = (beforeComment.match(/'/g) || []).length;
+                const doubleQuotes = (beforeComment.match(/"/g) || []).length;
+                if (singleQuotes % 2 === 0 && doubleQuotes % 2 === 0) {
+                    count++;
+                }
             }
         }
         return count;
