@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roblox Script Checker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/monokai.min.css">
+    <link rel="stylesheet" href="assets/css/base.css">
+    <link rel="stylesheet" href="assets/css/header.css">
+    <link rel="stylesheet" href="assets/css/input-section.css">
+    <link rel="stylesheet" href="assets/css/editor.css">
+    <link rel="stylesheet" href="assets/css/buttons.css">
+    <link rel="stylesheet" href="assets/css/results.css">
+    <link rel="stylesheet" href="assets/css/metrics.css">
+    <link rel="stylesheet" href="assets/css/issues.css">
+    <link rel="stylesheet" href="assets/css/animations.css">
+    <link rel="stylesheet" href="assets/css/utilities.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Roblox Script Checker</h1>
+            <p>Analyze your Roblox scripts for deprecations, API issues, inefficiencies, and more</p>
+        </header>
+        
+        <main>
+            <div class="input-section">
+                <div class="section-header">
+                    <h2>📝 Script Input</h2>
+                    <p>Paste your Roblox Lua script below for comprehensive analysis</p>
+                </div>
+                <div class="editor-container">
+                    <div id="codeEditor"></div>
+                </div>
+                <div class="action-section">
+                    <button id="analyzeBtn" class="primary-btn">
+                        <span class="btn-icon">🔍</span>
+                        <span class="btn-text">Analyze Script</span>
+                        <span class="btn-loading" style="display: none;">⏳</span>
+                    </button>
+                    <div class="file-actions">
+                        <button id="clearBtn" class="secondary-btn">Clear</button>
+                        <button id="exampleBtn" class="secondary-btn">Load Example</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="results-section" id="resultsSection" style="display: none;">
+                <div class="results-header">
+                    <h2>📊 Analysis Results</h2>
+                    <div class="results-actions">
+                        <button id="exportBtn" class="export-btn">📄 Export Report</button>
+                        <button id="shareBtn" class="share-btn">🔗 Share Results</button>
+                    </div>
+                </div>
+                
+                <div class="summary-section">
+                    <div class="overall-score">
+                        <div class="score-circle" id="scoreCircle">
+                            <span class="score-value" id="overallScore">85</span>
+                            <span class="score-label">Score</span>
+                        </div>
+                        <div class="score-details">
+                            <h3>Code Health</h3>
+                            <p id="scoreDescription">Your code is in good shape with minor improvements needed</p>
+                        </div>
+                    </div>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-icon">📏</div>
+                            <h3>Lines of Code</h3>
+                            <p class="metric-value" id="lineCount">0</p>
+                            <small>Excluding comments</small>
+                        </div>
+                        
+                        <div class="metric-card">
+                            <div class="metric-icon">💬</div>
+                            <h3>Comments</h3>
+                            <p class="metric-value" id="commentCount">0</p>
+                            <small>Documentation lines</small>
+                        </div>
+                        
+                        <div class="metric-card">
+                            <div class="metric-icon">🏗️</div>
+                            <h3>Max Nesting</h3>
+                            <p class="metric-value" id="nestingLevel">0</p>
+                            <small>Complexity depth</small>
+                        </div>
+                        
+                        <div class="metric-card">
+                            <div class="metric-icon">⚠️</div>
+                            <h3>Total Issues</h3>
+                            <p class="metric-value" id="totalIssues">0</p>
+                            <small>All categories</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="issues-section">
+                    <div class="issue-category security" data-category="security">
+                        <div class="category-header">
+                            <h3>🔒 Security Issues <span class="count" id="securityCount">0</span></h3>
+                            <button class="collapse-btn" data-target="securityList">−</button>
+                        </div>
+                        <ul id="securityList" class="issue-list"></ul>
+                    </div>
+                    
+                    <div class="issue-category deprecation" data-category="deprecation">
+                        <div class="category-header">
+                            <h3>⚠️ Deprecations <span class="count" id="deprecationCount">0</span></h3>
+                            <button class="collapse-btn" data-target="deprecationsList">−</button>
+                        </div>
+                        <ul id="deprecationsList" class="issue-list"></ul>
+                    </div>
+                    
+                    <div class="issue-category api" data-category="api">
+                        <div class="category-header">
+                            <h3>🔧 API Issues <span class="count" id="apiCount">0</span></h3>
+                            <button class="collapse-btn" data-target="apiIssuesList">−</button>
+                        </div>
+                        <ul id="apiIssuesList" class="issue-list"></ul>
+                    </div>
+                    
+                    <div class="issue-category performance" data-category="performance">
+                        <div class="category-header">
+                            <h3>⚡ Performance <span class="count" id="inefficiencyCount">0</span></h3>
+                            <button class="collapse-btn" data-target="inefficienciesList">−</button>
+                        </div>
+                        <ul id="inefficienciesList" class="issue-list"></ul>
+                    </div>
+                    
+                    <div class="issue-category quality" data-category="quality">
+                        <div class="category-header">
+                            <h3>✨ Code Quality <span class="count" id="lintCount">0</span></h3>
+                            <button class="collapse-btn" data-target="lintIssuesList">−</button>
+                        </div>
+                        <ul id="lintIssuesList" class="issue-list"></ul>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/lua/lua.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luaparse@0.3.1/luaparse.js"></script>
+    <script src="assets/js/modules/RobloxScriptChecker.js"></script>
+    <script src="assets/js/modules/AnalysisMethods.js"></script>
+    <script src="assets/js/modules/HelperMethods.js"></script>
+    <script src="assets/js/modules/LintChecks.js"></script>
+    <script src="assets/js/modules/SecurityChecks.js"></script>
+    <script src="assets/js/modules/BestPractices.js"></script>
+    <script src="assets/js/modules/APIVerification.js"></script>
+    <script src="assets/js/modules/FallbackAnalysis.js"></script>
+    <script src="assets/js/main.js"></script>
+</body>
+</html>

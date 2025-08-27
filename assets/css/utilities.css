@@ -1,0 +1,83 @@
+.severity-high {
+    color: #e53e3e !important;
+    font-weight: 600;
+}
+
+.severity-medium {
+    color: #ed8936 !important;
+    font-weight: 600;
+}
+
+.severity-low {
+    color: #38a169 !important;
+    font-weight: 500;
+}
+
+.issue-header {
+    margin-bottom: 8px;
+}
+
+.issue-suggestion {
+    margin: 8px 0;
+    padding: 8px 12px;
+    background: rgba(102, 126, 234, 0.1);
+    border-left: 3px solid #667eea;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.issue-docs {
+    margin: 8px 0;
+    font-size: 0.9rem;
+}
+
+.issue-meta {
+    margin-top: 8px;
+    opacity: 0.7;
+    font-size: 0.8rem;
+}
+
+.issue-code {
+    margin-top: 8px;
+}
+
+.issue-list li code {
+    background: rgba(45, 55, 72, 0.8);
+    color: #e2e8f0;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    font-size: 0.85rem;
+    margin-top: 8px;
+    display: inline-block;
+    border: 1px solid rgba(113, 128, 150, 0.2);
+}
+
+.issue-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.issue-list::-webkit-scrollbar-track {
+    background: rgba(45, 55, 72, 0.5);
+    border-radius: 4px;
+}
+
+.issue-list::-webkit-scrollbar-thumb {
+    background: rgba(113, 128, 150, 0.5);
+    border-radius: 4px;
+}
+
+.issue-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(113, 128, 150, 0.8);
+}
+
+a {
+    color: #667eea;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: #764ba2;
+    text-decoration: underline;
+}

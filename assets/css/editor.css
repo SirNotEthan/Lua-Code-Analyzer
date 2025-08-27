@@ -1,0 +1,56 @@
+#codeEditor {
+    width: 100%;
+    border: 2px solid #4a5568;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.3s ease;
+    font-size: 14px;
+}
+
+#codeEditor:focus-within {
+    border-color: #718096;
+    box-shadow: 0 0 0 3px rgba(113, 128, 150, 0.2);
+}
+
+.CodeMirror {
+    font-family: 'Fira Code', 'JetBrains Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 14px;
+    line-height: 1.4;
+    border-radius: 6px;
+    background: #1a1a1a !important;
+}
+
+.CodeMirror-focused {
+    outline: none;
+}
+
+.CodeMirror-lines {
+    padding: 10px 0;
+}
+
+.CodeMirror-line {
+    padding: 0 10px;
+}
+
+.CodeMirror-gutters {
+    background: #0f0f0f;
+    border-right: 1px solid #2d2d2d;
+}
+
+.CodeMirror-linenumber {
+    color: #718096;
+    font-size: 12px;
+}
+
+.CodeMirror-cursor {
+    border-left: 2px solid #e2e8f0;
+}
+
+.CodeMirror-selected {
+    background: rgba(113, 128, 150, 0.2);
+}
+
+.CodeMirror-placeholder {
+    color: #718096 !important;
+    font-style: italic;
+}
