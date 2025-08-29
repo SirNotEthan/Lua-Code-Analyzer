@@ -221,34 +221,22 @@ class RobloxScriptChecker {
             
             // Check for deprecated function calls
             if (node.type === 'CallExpression') {
+                const fullFunctionPath = this.getFullFunctionPath(node);
                 const funcName = this.getFunctionName(node);
                 
-                if (funcName === 'wait') {
-                    let isTaskWait = false;
-                    if (node.base && node.base.type === 'MemberExpression') {
-                        const baseExpr = this.getMemberExpressionString(node.base);
-                        if (baseExpr === 'task.wait') {
-                            isTaskWait = true;
-                        }
-                    }
-                    
-                    if (!isTaskWait) {
+                // Check each verified deprecated API with proper context
+                for (const apiInfo of this.verifiedDeprecatedAPIs) {
+                    if (this.isDeprecatedCallMatch(node, apiInfo, fullFunctionPath, funcName)) {
                         issues.push({
                             line: node.loc ? node.loc.start.line : 'unknown',
-                            message: `Deprecated function: ${funcName}`,
-                            suggestion: this.getModernAlternative(funcName)
+                            message: `${apiInfo.reason}`,
+                            suggestion: `Use ${apiInfo.alternative}`,
+                            docUrl: apiInfo.docUrl,
+                            severity: apiInfo.severity,
+                            lastVerified: apiInfo.lastVerified
                         });
+                        break; // Only report once per node
                     }
-                } else if (this.isVerifiedDeprecated(funcName)) {
-                    const apiInfo = this.getVerifiedAPIInfo(funcName);
-                    issues.push({
-                        line: node.loc ? node.loc.start.line : 'unknown',
-                        message: `${apiInfo.reason}`,
-                        suggestion: `Use ${apiInfo.alternative}`,
-                        docUrl: apiInfo.docUrl,
-                        severity: apiInfo.severity,
-                        lastVerified: apiInfo.lastVerified
-                    });
                 }
             }
             
@@ -386,6 +374,59 @@ class RobloxScriptChecker {
             return callNode.base.identifier ? callNode.base.identifier.name : '';
         }
         return '';
+    }
+    
+    // Get the full qualified path of a function call (e.g., "task.wait", "workspace.FindPartOnRay")
+    getFullFunctionPath(callNode) {
+        if (callNode.base && callNode.base.type === 'Identifier') {
+            return callNode.base.name;
+        }
+        if (callNode.base && callNode.base.type === 'MemberExpression') {
+            return this.getMemberExpressionString(callNode.base);
+        }
+        return '';
+    }
+    
+    // Check if a call expression matches a deprecated API with proper context validation
+    isDeprecatedCallMatch(node, apiInfo, fullPath, funcName) {
+        switch (apiInfo.name) {
+            case 'wait':
+                // Global wait() is deprecated, but task.wait() is not
+                return funcName === 'wait' && !fullPath.includes('task.wait');
+                
+            case 'spawn':
+                // Global spawn() is deprecated, but task.spawn() is not
+                return funcName === 'spawn' && !fullPath.includes('task.spawn');
+                
+            case 'delay':
+                // Global delay() is deprecated, but task.delay() is not  
+                return funcName === 'delay' && !fullPath.includes('task.delay');
+                
+            case 'LoadAnimation':
+                // Humanoid:LoadAnimation() is deprecated
+                return funcName === 'LoadAnimation' && 
+                       (fullPath.includes('Humanoid.LoadAnimation') || 
+                        this.isHumanoidContext(node));
+                        
+            case 'FindPartOnRay':
+            case 'FindPartOnRayWithIgnoreList':
+                // workspace:FindPartOnRay methods are deprecated
+                return funcName === apiInfo.name && 
+                       (fullPath.includes('workspace.') || fullPath.includes('game.Workspace.'));
+                       
+            default:
+                // For other APIs, do basic name matching with context awareness
+                return funcName === apiInfo.name;
+        }
+    }
+    
+    // Helper to detect if a call is in Humanoid context
+    isHumanoidContext(node) {
+        if (node.base && node.base.type === 'MemberExpression') {
+            const baseString = this.getMemberExpressionString(node.base);
+            return baseString.toLowerCase().includes('humanoid');
+        }
+        return false;
     }
 
     getMemberExpressionString(node) {
@@ -636,23 +677,14 @@ class RobloxScriptChecker {
         const lines = script.split('\n');
         
         for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
+            const line = lines[i].trim();
             
-            // Special handling for 'wait' to avoid flagging 'task.wait()'
-            if (line.includes('wait')) {
-                // Only flag if it's not 'task.wait'
-                if (!line.includes('task.wait') && /\bwait\s*\(/.test(line)) {
-                    issues.push({
-                        line: i + 1,
-                        message: `Deprecated API: wait`,
-                        suggestion: this.getModernAlternative('wait')
-                    });
-                }
-            }
+            // Skip comments and empty lines
+            if (line.startsWith('--') || !line) continue;
             
-            // Check other verified deprecated APIs (excluding wait since we handled it above)
+            // Check each verified deprecated API with improved context validation
             for (let apiInfo of this.verifiedDeprecatedAPIs) {
-                if (apiInfo.name !== 'wait' && line.includes(apiInfo.name)) {
+                if (this.isDeprecatedLineFallback(line, apiInfo)) {
                     // Validate before flagging
                     if (this.validateDeprecationStatus(apiInfo.name)) {
                         issues.push({
@@ -669,6 +701,48 @@ class RobloxScriptChecker {
         }
         
         return issues;
+    }
+    
+    // Improved fallback detection with context awareness
+    isDeprecatedLineFallback(line, apiInfo) {
+        const apiName = apiInfo.name;
+        
+        // Skip if the API name is not in the line
+        if (!line.includes(apiName)) return false;
+        
+        // Check for string literals - avoid flagging APIs mentioned in strings
+        const stringRegex = /(["'])(?:(?!\1)[^\\]|\\.)*\1/g;
+        const stringsRemoved = line.replace(stringRegex, '""');
+        if (!stringsRemoved.includes(apiName)) return false;
+        
+        switch (apiName) {
+            case 'wait':
+                // Only flag global wait(), not task.wait()
+                return /\bwait\s*\(/.test(line) && !line.includes('task.wait');
+                
+            case 'spawn':
+                // Only flag global spawn(), not task.spawn() 
+                return /\bspawn\s*\(/.test(line) && !line.includes('task.spawn');
+                
+            case 'delay':
+                // Only flag global delay(), not task.delay()
+                return /\bdelay\s*\(/.test(line) && !line.includes('task.delay');
+                
+            case 'LoadAnimation':
+                // Only flag if it looks like a method call on Humanoid
+                return /\bLoadAnimation\s*\(/.test(line) && 
+                       (line.toLowerCase().includes('humanoid') || line.includes(':LoadAnimation'));
+                       
+            case 'FindPartOnRay':
+            case 'FindPartOnRayWithIgnoreList':
+                // Only flag if it looks like a workspace method call
+                return new RegExp(`\\b${apiName}\\s*\\(`).test(line) && 
+                       (line.includes('workspace') || line.includes('game.Workspace'));
+                       
+            default:
+                // For other APIs, require it to look like a function call
+                return new RegExp(`\\b${apiName}\\s*\\(`).test(line);
+        }
     }
 
     findAPIIssuesFallback(script) {
