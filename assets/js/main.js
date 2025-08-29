@@ -862,8 +862,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 local remoteEvent = ReplicatedStorage:WaitForChild("ProcessData")
 
-local API_KEY = "null_token"
-local SECRET_TOKEN = "null_token"
+local API_KEY = "sk_live_abcd1234567890efgh1234567890ijkl"
+local SECRET_TOKEN = "bearer_xyz789abc123def456ghi789"
 
 remoteEvent:FireServer({
     userId = player.UserId,
