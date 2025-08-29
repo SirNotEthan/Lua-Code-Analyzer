@@ -5,7 +5,7 @@ class RobloxScriptChecker {
                 name: 'wait',
                 reason: 'Global wait() is deprecated',
                 alternative: 'task.wait()',
-                docUrl: 'https://create.roblox.com/docs/reference/engine/libraries/task#wait',
+                docUrl: 'https://create.roblox.com/docs',
                 lastVerified: '2024-08-26',
                 severity: 'high'
             },
@@ -13,7 +13,7 @@ class RobloxScriptChecker {
                 name: 'spawn',
                 reason: 'Global spawn() is deprecated',
                 alternative: 'coroutine.create() and coroutine.resume() or task.defer()',
-                docUrl: 'https://create.roblox.com/docs/reference/engine/libraries/task#defer',
+                docUrl: 'https://create.roblox.com/docs',
                 lastVerified: '2024-08-26',
                 severity: 'high'
             },
@@ -21,7 +21,7 @@ class RobloxScriptChecker {
                 name: 'delay',
                 reason: 'Global delay() is deprecated',
                 alternative: 'task.delay()',
-                docUrl: 'https://create.roblox.com/docs/reference/engine/libraries/task#delay',
+                docUrl: 'https://create.roblox.com/docs',
                 lastVerified: '2024-08-26',
                 severity: 'high'
             },
@@ -29,7 +29,7 @@ class RobloxScriptChecker {
                 name: 'LoadAnimation',
                 reason: 'Humanoid:LoadAnimation() is deprecated',
                 alternative: 'AnimationController:LoadAnimation() or Animator:LoadAnimation()',
-                docUrl: 'https://create.roblox.com/docs/reference/engine/classes/AnimationController#LoadAnimation',
+                docUrl: 'https://create.roblox.com/docs',
                 lastVerified: '2024-08-26',
                 severity: 'medium'
             },
@@ -37,7 +37,7 @@ class RobloxScriptChecker {
                 name: 'FindPartOnRay',
                 reason: 'WorldRoot:FindPartOnRay() is deprecated',
                 alternative: 'workspace:Raycast()',
-                docUrl: 'https://create.roblox.com/docs/reference/engine/classes/WorldRoot#Raycast',
+                docUrl: 'https://create.roblox.com/docs',
                 lastVerified: '2024-08-26',
                 severity: 'medium'
             },
@@ -45,7 +45,7 @@ class RobloxScriptChecker {
                 name: 'FindPartOnRayWithIgnoreList',
                 reason: 'WorldRoot:FindPartOnRayWithIgnoreList() is deprecated',
                 alternative: 'workspace:Raycast() with RaycastParams',
-                docUrl: 'https://create.roblox.com/docs/reference/engine/classes/WorldRoot#Raycast',
+                docUrl: 'https://create.roblox.com/docs',
                 lastVerified: '2024-08-26',
                 severity: 'medium'
             },
@@ -53,7 +53,7 @@ class RobloxScriptChecker {
                 name: 'GetChildren',
                 reason: 'Use GetChildren() with validation instead of assuming structure',
                 alternative: 'GetChildren() with type checking or FindFirstChild()',
-                docUrl: 'https://create.roblox.com/docs/reference/engine/classes/Instance#GetChildren',
+                docUrl: 'https://create.roblox.com/docs',
                 lastVerified: '2024-08-26',
                 severity: 'low'
             },
@@ -61,7 +61,7 @@ class RobloxScriptChecker {
                 name: 'Mouse.Hit',
                 reason: 'Mouse.Hit should be used carefully due to filtering',
                 alternative: 'Use Mouse.Hit with validation or UserInputService',
-                docUrl: 'https://create.roblox.com/docs/reference/engine/classes/UserInputService',
+                docUrl: 'https://create.roblox.com/docs',
                 lastVerified: '2024-08-26',
                 severity: 'medium'
             },
@@ -69,7 +69,7 @@ class RobloxScriptChecker {
                 name: 'RemoteEvent:FireServer',
                 reason: 'Ensure proper validation and security checks',
                 alternative: 'Add server-side validation and rate limiting',
-                docUrl: 'https://create.roblox.com/docs/scripting/events/remote',
+                docUrl: 'https://create.roblox.com/docs',
                 lastVerified: '2024-08-26',
                 severity: 'high'
             },
@@ -77,7 +77,7 @@ class RobloxScriptChecker {
                 name: 'Instance.new',
                 reason: 'Consider object pooling for frequently created instances',
                 alternative: 'Use object pools or pre-created instances when possible',
-                docUrl: 'https://create.roblox.com/docs/scripting/performance-optimization',
+                docUrl: 'https://create.roblox.com/docs',
                 lastVerified: '2024-08-26',
                 severity: 'low'
             },
@@ -85,7 +85,7 @@ class RobloxScriptChecker {
                 name: 'game.Players.LocalPlayer',
                 reason: 'Cache LocalPlayer reference to avoid repeated access',
                 alternative: 'Store in local variable: local player = game.Players.LocalPlayer',
-                docUrl: 'https://create.roblox.com/docs/reference/engine/classes/Players#LocalPlayer',
+                docUrl: 'https://create.roblox.com/docs',
                 lastVerified: '2024-08-26',
                 severity: 'medium'
             }
@@ -255,8 +255,178 @@ class RobloxScriptChecker {
                 parseSuccess: true
             };
         } catch (error) {
-            console.warn('Lua parsing failed, using fallback analysis:', error);
             return this.fallbackAnalysis(script);
         }
+    }
+    
+    findDeprecations(ast) {
+        const issues = [];
+        const traverse = (node) => {
+            if (!node || typeof node !== 'object') return;
+            if (node.type === 'CallExpression') {
+                const fullFunctionPath = this.getFullFunctionPath(node);
+                const funcName = this.getFunctionName(node);
+                for (const apiInfo of this.verifiedDeprecatedAPIs) {
+                    if (this.isDeprecatedCallMatch(node, apiInfo, fullFunctionPath, funcName)) {
+                        issues.push({
+                            line: node.loc ? node.loc.start.line : 'unknown',
+                            message: `${apiInfo.reason}`,
+                            suggestion: `Use ${apiInfo.alternative}`,
+                            docUrl: apiInfo.docUrl,
+                            severity: apiInfo.severity,
+                            lastVerified: apiInfo.lastVerified
+                        });
+                        break;
+                    }
+                }
+            }
+            Object.values(node).forEach(child => {
+                if (Array.isArray(child)) {
+                    child.forEach(item => traverse(item));
+                } else if (child && typeof child === 'object') {
+                    traverse(child);
+                }
+            });
+        };
+        traverse(ast);
+        return issues;
+    }
+    
+    findSecurityIssues(ast) {
+        return [];
+    }
+    
+    findAPIIssues(ast) {
+        return [];
+    }
+    
+    findInefficiencies(ast) {
+        return [];
+    }
+    
+    findLintIssues(ast, script) {
+        return [];
+    }
+    
+    getFunctionName(callNode) {
+        if (callNode.base && callNode.base.type === 'Identifier') {
+            return callNode.base.name;
+        }
+        if (callNode.base && callNode.base.type === 'MemberExpression') {
+            return callNode.base.identifier ? callNode.base.identifier.name : '';
+        }
+        return '';
+    }
+    
+    getFullFunctionPath(callNode) {
+        if (callNode.base && callNode.base.type === 'Identifier') {
+            return callNode.base.name;
+        }
+        if (callNode.base && callNode.base.type === 'MemberExpression') {
+            return this.getMemberExpressionString(callNode.base);
+        }
+        return '';
+    }
+    
+    getMemberExpressionString(node) {
+        if (node.type === 'MemberExpression') {
+            const base = node.base.name || this.getMemberExpressionString(node.base);
+            const identifier = node.identifier.name;
+            return `${base}.${identifier}`;
+        }
+        return node.name || '';
+    }
+    
+    isDeprecatedCallMatch(node, apiInfo, fullPath, funcName) {
+        return funcName === apiInfo.name;
+    }
+    
+    getCommentCount(ast) {
+        return ast.comments ? ast.comments.length : 0;
+    }
+    
+    getLineCount(script) {
+        const lines = script.split('\n');
+        let count = 0;
+        for (let line of lines) {
+            const trimmed = line.trim();
+            if (trimmed && !trimmed.startsWith('--')) {
+                count++;
+            }
+        }
+        return count;
+    }
+    
+    getMaxNestingLevel(ast) {
+        let maxLevel = 0;
+        const traverse = (node, level = 0) => {
+            if (!node || typeof node !== 'object') return;
+            maxLevel = Math.max(maxLevel, level);
+            const nestingNodes = [
+                'FunctionDeclaration', 'LocalStatement', 'IfStatement', 
+                'WhileStatement', 'RepeatStatement', 'ForNumericStatement', 
+                'ForGenericStatement', 'DoStatement'
+            ];
+            const newLevel = nestingNodes.includes(node.type) ? level + 1 : level;
+            Object.values(node).forEach(child => {
+                if (Array.isArray(child)) {
+                    child.forEach(item => traverse(item, newLevel));
+                } else if (child && typeof child === 'object') {
+                    traverse(child, newLevel);
+                }
+            });
+        };
+        traverse(ast);
+        return maxLevel;
+    }
+    
+    fallbackAnalysis(script) {
+        const lines = script.split('\n');
+        return {
+            lineCount: this.getLineCount(script),
+            commentCount: this.getCommentCountFallback(lines),
+            nestingLevel: this.getMaxNestingLevelFallback(lines),
+            deprecations: [],
+            securityIssues: [],
+            apiIssues: [],
+            inefficiencies: [],
+            lintIssues: [],
+            parseSuccess: false
+        };
+    }
+    
+    getCommentCountFallback(lines) {
+        let count = 0;
+        for (let line of lines) {
+            if (line.trim().startsWith('--')) {
+                count++;
+            }
+        }
+        return count;
+    }
+    
+    getMaxNestingLevelFallback(lines) {
+        let maxLevel = 0;
+        let currentLevel = 0;
+        const increaseKeywords = ['function', 'if', 'for', 'while', 'repeat', 'do'];
+        const decreaseKeywords = ['end', 'until'];
+        for (let line of lines) {
+            const trimmed = line.trim().toLowerCase();
+            if (trimmed.startsWith('--')) continue;
+            for (let keyword of increaseKeywords) {
+                if (trimmed.includes(keyword)) {
+                    currentLevel++;
+                    maxLevel = Math.max(maxLevel, currentLevel);
+                    break;
+                }
+            }
+            for (let keyword of decreaseKeywords) {
+                if (trimmed.includes(keyword)) {
+                    currentLevel = Math.max(0, currentLevel - 1);
+                    break;
+                }
+            }
+        }
+        return maxLevel;
     }
 }
