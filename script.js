@@ -208,7 +208,7 @@ class RobloxScriptChecker {
             },
             {
                 check: (node) => this.isNumericForLoop(node),
-                message: 'Consider using ipairs() or pairs() for table iteration'
+                message: 'Consider using generic for loops for table iteration'
             },
             {
                 check: (node) => this.isRepeatedGameAccess(node),
@@ -217,28 +217,12 @@ class RobloxScriptChecker {
         ];
         this.lintChecks = [
             {
-                check: (node) => this.hasLongLineLength(node),
-                message: 'Line length exceeds recommended 120 characters'
-            },
-            {
-                check: (node) => this.hasInconsistentIndentation(node),
-                message: 'Inconsistent indentation detected'
-            },
-            {
-                check: (node) => this.hasMagicNumbers(node),
-                message: 'Consider using named constants instead of magic numbers'
-            },
-            {
-                check: (node) => this.hasUnusedVariable(node),
-                message: 'Unused variable detected'
-            },
-            {
                 check: (node) => this.hasDeepNesting(node),
-                message: 'Deep nesting detected - consider refactoring'
+                message: 'Excessive nesting detected (>6 levels) - consider refactoring'
             },
             {
                 check: (node) => this.hasTooManyParameters(node),
-                message: 'Function has too many parameters (>5) - consider refactoring'
+                message: 'Function has too many parameters (>8) - consider refactoring'
             }
         ];
     }
@@ -398,7 +382,7 @@ class RobloxScriptChecker {
         relaxed = relaxed.replace(/[^\x00-\x7F\n\r\t]/g, ' ');
         relaxed = relaxed.replace(/function\s*\([^)]*\)\s*[^e]*?end/g, 'function() end');
         relaxed = relaxed.replace(/for\s+\w+\s*=\s*[^d]*?do/g, 'for i=1,10 do');
-        relaxed = relaxed.replace(/for\s+\w+,\s*\w+\s+in\s+[^d]*?do/g, 'for k,v in pairs(t) do');
+        relaxed = relaxed.replace(/for\s+\w+,\s*\w+\s+in\s+[^d]*?do/g, 'for k,v in next,t do');
         relaxed = relaxed.replace(/while\s+[^d]*?do/g, 'while true do');
         relaxed = relaxed.replace(/if\s+[^t]*?then/g, 'if true then');
         relaxed = relaxed.replace(/\b\w+:\w+\b/g, 'obj.method');
@@ -722,18 +706,11 @@ class RobloxScriptChecker {
         const lines = script.split('\n');
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
-            if (line.length > 120) {
+            if (line.length > 200) {
                 issues.push({
                     line: i + 1,
-                    message: 'Line length exceeds recommended 120 characters',
+                    message: 'Extremely long line detected (>200 characters)',
                     code: line.slice(0, 50) + '...'
-                });
-            }
-            if (line.match(/^\s+/) && line.includes('\t') && line.includes(' ')) {
-                issues.push({
-                    line: i + 1,
-                    message: 'Mixed tabs and spaces detected',
-                    code: 'Use consistent indentation'
                 });
             }
         }
@@ -963,11 +940,11 @@ class RobloxScriptChecker {
             }
             current = current.parent;
         }
-        return depth > 4;
+        return depth > 6;
     }
     hasTooManyParameters(node) {
         if (node.type === 'FunctionDeclaration') {
-            return node.parameters && node.parameters.length > 5;
+            return node.parameters && node.parameters.length > 8;
         }
         return false;
     }
@@ -1158,7 +1135,7 @@ class RobloxScriptChecker {
         const lines = script.split('\n');
         const patterns = [
             { pattern: /while\s+true\s+do/, message: "Infinite while loop - ensure proper yielding" },
-            { pattern: /for\s+\w+\s*=\s*1\s*,\s*#/, message: "Consider using ipairs() for array iteration" }
+            { pattern: /for\s+\w+\s*=\s*1\s*,\s*#/, message: "Consider using generic for loops for array iteration" }
         ];
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
@@ -1225,18 +1202,11 @@ class RobloxScriptChecker {
         const lines = script.split('\n');
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
-            if (line.length > 120) {
+            if (line.length > 200) {
                 issues.push({
                     line: i + 1,
-                    message: 'Line length exceeds recommended 120 characters',
+                    message: 'Extremely long line detected (>200 characters)',
                     code: line.slice(0, 50) + '...'
-                });
-            }
-            if (line.match(/^\s+/) && line.includes('\t') && line.includes(' ')) {
-                issues.push({
-                    line: i + 1,
-                    message: 'Mixed tabs and spaces detected',
-                    code: 'Use consistent indentation'
                 });
             }
         }

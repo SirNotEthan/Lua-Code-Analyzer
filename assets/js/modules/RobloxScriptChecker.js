@@ -158,7 +158,7 @@ class RobloxScriptChecker {
             },
             {
                 check: (node) => this.isNumericForLoop(node),
-                message: 'Consider using ipairs() or pairs() for table iteration'
+                message: 'Consider using generic for loops for table iteration'
             },
             {
                 check: (node) => this.isRepeatedGameAccess(node),
@@ -188,48 +188,16 @@ class RobloxScriptChecker {
 
         this.lintChecks = [
             {
-                check: (node) => this.hasLongLineLength(node),
-                message: 'Line length exceeds recommended 120 characters'
-            },
-            {
-                check: (node) => this.hasInconsistentIndentation(node),
-                message: 'Inconsistent indentation detected'
-            },
-            {
-                check: (node) => this.hasMagicNumbers(node),
-                message: 'Consider using named constants instead of magic numbers'
-            },
-            {
-                check: (node) => this.hasUnusedVariable(node),
-                message: 'Unused variable detected'
-            },
-            {
                 check: (node) => this.hasDeepNesting(node),
-                message: 'Deep nesting detected - consider refactoring'
+                message: 'Excessive nesting detected (>6 levels) - consider refactoring'
             },
             {
                 check: (node) => this.hasTooManyParameters(node),
-                message: 'Function has too many parameters (>5) - consider refactoring'
+                message: 'Function has too many parameters (>8) - consider refactoring'
             },
             {
                 check: (node) => this.hasLongFunction(node),
-                message: 'Function is too long (>50 lines) - consider breaking it down'
-            },
-            {
-                check: (node) => this.hasPoorNaming(node),
-                message: 'Variable/function naming could be improved'
-            },
-            {
-                check: (node) => this.hasNoErrorHandling(node),
-                message: 'Consider adding error handling (pcall/xpcall)'
-            },
-            {
-                check: (node) => this.hasEmptyBlocks(node),
-                message: 'Empty code block detected'
-            },
-            {
-                check: (node) => this.hasDuplicateCode(node),
-                message: 'Potential duplicate code detected'
+                message: 'Function is very long (>100 lines) - consider breaking it down'
             }
         ];
     }

@@ -37,12 +37,12 @@ RobloxScriptChecker.prototype.hasDeepNesting = function(node) {
         current = current.parent;
     }
     
-    return depth > 4;
+    return depth > 6;
 };
 
 RobloxScriptChecker.prototype.hasTooManyParameters = function(node) {
     if (node.type === 'FunctionDeclaration') {
-        return node.parameters && node.parameters.length > 5;
+        return node.parameters && node.parameters.length > 8;
     }
     return false;
 };
@@ -50,7 +50,7 @@ RobloxScriptChecker.prototype.hasTooManyParameters = function(node) {
 RobloxScriptChecker.prototype.hasLongFunction = function(node) {
     if (node.type === 'FunctionDeclaration' && node.loc) {
         const lineCount = node.loc.end.line - node.loc.start.line;
-        return lineCount > 50;
+        return lineCount > 100;
     }
     return false;
 };

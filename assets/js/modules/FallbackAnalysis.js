@@ -149,7 +149,7 @@ RobloxScriptChecker.prototype.findInefficienciesFallback = function(script) {
     const lines = script.split('\n');
     const patterns = [
         { pattern: /while\s+true\s+do/, message: "Infinite while loop - ensure proper yielding" },
-        { pattern: /for\s+\w+\s*=\s*1\s*,\s*#/, message: "Consider using ipairs() for array iteration" }
+        { pattern: /for\s+\w+\s*=\s*1\s*,\s*#/, message: "Consider using generic for loops for array iteration" }
     ];
     
     for (let i = 0; i < lines.length; i++) {
