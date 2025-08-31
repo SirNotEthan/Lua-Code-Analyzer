@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="assets/css/results.css"> <!-- Results Section Design -->
     <link rel="stylesheet" href="assets/css/metrics.css"> <!-- All Metrics and Scorecards -->
     <link rel="stylesheet" href="assets/css/issues.css"> <!-- Issues List Design -->
+    <link rel="stylesheet" href="assets/css/tooltips.css"> <!-- Tooltip and Modal Styles -->
     <link rel="stylesheet" href="assets/css/responsive.css"> <!-- Mobile Layout-->
 </head>
 <body>
@@ -172,7 +173,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/lua/lua.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/luaparse@0.3.1/luaparse.js"></script>
-    <script src="script.js?v=1"></script>
-    <script src="assets/js/main.js?v=1"></script>
+    
+    <!-- Core script checker -->
+    <script src="assets/js/modules/RobloxScriptChecker.js?v=6"></script>
+    
+    <!-- UI modules -->
+    <script src="assets/js/modules/EditorHighlighting.js?v=6"></script>
+    <script src="assets/js/modules/IssueModal.js?v=6"></script>
+    <script src="assets/js/modules/ExampleManager.js?v=6"></script>
+    <script src="assets/js/modules/ResultsDisplay.js?v=6"></script>
+    
+    <!-- Main application -->
+    <script src="assets/js/main.js?v=6"></script>
 </body>
 </html>

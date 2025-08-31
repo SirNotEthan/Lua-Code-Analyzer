@@ -261,19 +261,143 @@ class RobloxScriptChecker {
     }
     
     findSecurityIssues(ast) {
-        return [];
+        const issues = [];
+        const traverse = (node) => {
+            if (!node || typeof node !== 'object') return;
+            
+            // Check each security issue pattern
+            for (const issue of this.securityIssues) {
+                try {
+                    if (issue.check(node)) {
+                        issues.push({
+                            line: node.loc ? node.loc.start.line : 'unknown',
+                            message: issue.message,
+                            category: 'security',
+                            severity: 'high'
+                        });
+                    }
+                } catch (e) {
+                    // Ignore individual check errors
+                }
+            }
+            
+            // Traverse child nodes
+            Object.values(node).forEach(child => {
+                if (Array.isArray(child)) {
+                    child.forEach(item => traverse(item));
+                } else if (child && typeof child === 'object') {
+                    traverse(child);
+                }
+            });
+        };
+        
+        traverse(ast);
+        return issues;
     }
     
     findAPIIssues(ast) {
-        return [];
+        const issues = [];
+        const traverse = (node) => {
+            if (!node || typeof node !== 'object') return;
+            
+            // Check each API issue pattern
+            for (const issue of this.apiIssues) {
+                try {
+                    if (issue.check(node)) {
+                        issues.push({
+                            line: node.loc ? node.loc.start.line : 'unknown',
+                            message: issue.message,
+                            category: 'api',
+                            severity: 'medium'
+                        });
+                    }
+                } catch (e) {
+                    // Ignore individual check errors
+                }
+            }
+            
+            // Traverse child nodes
+            Object.values(node).forEach(child => {
+                if (Array.isArray(child)) {
+                    child.forEach(item => traverse(item));
+                } else if (child && typeof child === 'object') {
+                    traverse(child);
+                }
+            });
+        };
+        
+        traverse(ast);
+        return issues;
     }
     
     findInefficiencies(ast) {
-        return [];
+        const issues = [];
+        const traverse = (node) => {
+            if (!node || typeof node !== 'object') return;
+            
+            // Check each performance issue pattern
+            for (const issue of this.inefficiencyPatterns) {
+                try {
+                    if (issue.check(node)) {
+                        issues.push({
+                            line: node.loc ? node.loc.start.line : 'unknown',
+                            message: issue.message,
+                            category: 'performance',
+                            severity: 'medium'
+                        });
+                    }
+                } catch (e) {
+                    // Ignore individual check errors
+                }
+            }
+            
+            // Traverse child nodes
+            Object.values(node).forEach(child => {
+                if (Array.isArray(child)) {
+                    child.forEach(item => traverse(item));
+                } else if (child && typeof child === 'object') {
+                    traverse(child);
+                }
+            });
+        };
+        
+        traverse(ast);
+        return issues;
     }
     
     findLintIssues(ast, script) {
-        return [];
+        const issues = [];
+        const traverse = (node) => {
+            if (!node || typeof node !== 'object') return;
+            
+            // Check each lint/quality issue pattern
+            for (const issue of this.lintChecks) {
+                try {
+                    if (issue.check(node)) {
+                        issues.push({
+                            line: node.loc ? node.loc.start.line : 'unknown',
+                            message: issue.message,
+                            category: 'quality',
+                            severity: 'low'
+                        });
+                    }
+                } catch (e) {
+                    // Ignore individual check errors
+                }
+            }
+            
+            // Traverse child nodes
+            Object.values(node).forEach(child => {
+                if (Array.isArray(child)) {
+                    child.forEach(item => traverse(item));
+                } else if (child && typeof child === 'object') {
+                    traverse(child);
+                }
+            });
+        };
+        
+        traverse(ast);
+        return issues;
     }
     
     getFunctionName(callNode) {
@@ -396,5 +520,215 @@ class RobloxScriptChecker {
             }
         }
         return maxLevel;
+    }
+    
+    // Security check helper methods
+    hasUnsafeRemoteEvents(node) {
+        if (node.type === 'CallExpression') {
+            const funcPath = this.getFullFunctionPath(node);
+            return funcPath.includes('FireServer') || funcPath.includes('InvokeServer');
+        }
+        return false;
+    }
+    
+    hasClientSideValidation(node) {
+        return false; // Placeholder for more complex validation detection
+    }
+    
+    hasInsecureDataStorage(node) {
+        return false; // Placeholder for insecure storage detection
+    }
+    
+    hasUnsafeStringOperations(node) {
+        if (node.type === 'CallExpression') {
+            const funcName = this.getFunctionName(node);
+            return funcName === 'loadstring';
+        }
+        return false;
+    }
+    
+    hasUnprotectedValueChanges(node) {
+        if (node.type === 'AssignmentStatement') {
+            for (const variable of node.variables) {
+                const varPath = this.getMemberExpressionString(variable);
+                if (varPath.includes('.Health') || varPath.includes('.Money') || varPath.includes('.Value')) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    // API check helper methods
+    isCallExpression(node, baseName, path) {
+        if (node.type === 'CallExpression' && node.base && node.base.type === 'MemberExpression') {
+            const fullPath = this.getFullFunctionPath(node);
+            return fullPath.includes(baseName) && path.some(p => fullPath.includes(p));
+        }
+        return false;
+    }
+    
+    isPropertyAccess(node, objectName, propertyName) {
+        if (node.type === 'MemberExpression') {
+            const fullPath = this.getMemberExpressionString(node);
+            return fullPath.includes(objectName) && fullPath.includes(propertyName);
+        }
+        return false;
+    }
+    
+    isAssignment(node) {
+        return node && node.type === 'AssignmentStatement';
+    }
+    
+    hasNestedWaitForChild(node) {
+        if (node.type === 'CallExpression') {
+            const funcPath = this.getFullFunctionPath(node);
+            return funcPath.split('WaitForChild').length > 2;
+        }
+        return false;
+    }
+    
+    usesGetService(node) {
+        if (node.type === 'CallExpression') {
+            const funcPath = this.getFullFunctionPath(node);
+            return funcPath.includes('GetService');
+        }
+        return false;
+    }
+    
+    hasUnconnectedEvents(node) {
+        return false; // Placeholder for event connection tracking
+    }
+    
+    usesFindFirstChild(node) {
+        if (node.type === 'CallExpression') {
+            const funcName = this.getFunctionName(node);
+            return funcName === 'FindFirstChild';
+        }
+        return false;
+    }
+    
+    hasHardcodedIds(node) {
+        if (node.type === 'StringLiteral' && node.value.includes('rbxassetid://')) {
+            return true;
+        }
+        return false;
+    }
+    
+    // Performance check helper methods
+    isInfiniteLoop(node) {
+        if (node.type === 'WhileStatement') {
+            // Check if condition is always true
+            if (node.condition && node.condition.type === 'BooleanLiteral' && node.condition.value === true) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    isNumericForLoop(node) {
+        return node.type === 'ForNumericStatement';
+    }
+    
+    isRepeatedGameAccess(node) {
+        if (node.type === 'CallExpression') {
+            const funcPath = this.getFullFunctionPath(node);
+            return funcPath.startsWith('game.') && !funcPath.includes('GetService');
+        }
+        return false;
+    }
+    
+    hasExpensiveOperationsInLoop(node) {
+        if (this.isLoopNode(node)) {
+            // Check if loop body contains expensive operations
+            return this.containsExpensiveOperations(node.body || node.statements);
+        }
+        return false;
+    }
+    
+    isLoopNode(node) {
+        return ['WhileStatement', 'RepeatStatement', 'ForNumericStatement', 'ForGenericStatement'].includes(node.type);
+    }
+    
+    containsExpensiveOperations(statements) {
+        if (!statements || !Array.isArray(statements)) return false;
+        
+        for (const stmt of statements) {
+            if (stmt.type === 'CallExpression') {
+                const funcPath = this.getFullFunctionPath(stmt);
+                if (funcPath.includes('Instance.new') || funcPath.includes('GetChildren') || funcPath.includes('GetService')) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    hasUnoptimizedTableOperations(node) {
+        return false; // Placeholder for table operation analysis
+    }
+    
+    hasFrequentInstanceCreation(node) {
+        if (node.type === 'CallExpression') {
+            const funcPath = this.getFullFunctionPath(node);
+            return funcPath.includes('Instance.new');
+        }
+        return false;
+    }
+    
+    hasUnnecessaryStringConcatenation(node) {
+        if (node.type === 'BinaryExpression' && node.operator === '..') {
+            return true;
+        }
+        return false;
+    }
+    
+    hasDeepTableAccess(node) {
+        if (node.type === 'MemberExpression') {
+            const depth = (this.getMemberExpressionString(node).match(/\./g) || []).length;
+            return depth > 3;
+        }
+        return false;
+    }
+    
+    // Quality check helper methods
+    hasDeepNesting(node) {
+        let depth = 0;
+        const traverse = (n, currentDepth = 0) => {
+            if (!n || typeof n !== 'object') return;
+            
+            const nestingNodes = ['IfStatement', 'WhileStatement', 'ForStatement', 'FunctionDeclaration'];
+            if (nestingNodes.includes(n.type)) {
+                currentDepth++;
+                depth = Math.max(depth, currentDepth);
+            }
+            
+            Object.values(n).forEach(child => {
+                if (Array.isArray(child)) {
+                    child.forEach(item => traverse(item, currentDepth));
+                } else if (child && typeof child === 'object') {
+                    traverse(child, currentDepth);
+                }
+            });
+        };
+        
+        traverse(node);
+        return depth > 6;
+    }
+    
+    hasTooManyParameters(node) {
+        if (node.type === 'FunctionDeclaration') {
+            return node.parameters && node.parameters.length > 8;
+        }
+        return false;
+    }
+    
+    hasLongFunction(node) {
+        if (node.type === 'FunctionDeclaration') {
+            if (node.body && node.body.length > 100) {
+                return true;
+            }
+        }
+        return false;
     }
 }
